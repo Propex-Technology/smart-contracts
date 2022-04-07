@@ -11,29 +11,29 @@ contract LilOpenSea is Ownable {
 
     /// @notice Emitted when a new listing is created
     /// @param listing The newly-created listing
-    event NewListing(
+    event NewSellListing(
         uint256 indexed tokenId,
         uint256 indexed listingId,
 		address indexed seller,
-        Listing listing
+        SellListing listing
     );
 
     /// @notice Emitted when a listing is removed (canceled or finished)
     /// @param listing The removed listing
-    event ListingRemoved(
+    event SellListingRemoved(
         uint256 indexed tokenId,
         uint256 indexed listingId,
-        Listing listing
+        SellListing listing
     );
 
     /// @notice Emitted when a listing is purchased
     /// @param buyer The address of the buyer
     /// @param listing The purchased listing
-    event ListingBought(
+    event SellListingBought(
         uint256 indexed tokenId,
         uint256 indexed listingId,
         address indexed buyer,
-        Listing listing
+        SellListing listing
     );
 
     /// TODO: post buy listings vs post sell listings
@@ -59,7 +59,7 @@ contract LilOpenSea is Ownable {
     /// @param askPrice The amount the seller is asking for in exchange for the token (per unit)
     /// @param askToken The token the seller is asking for in payment.
     /// @param creator The address of the seller
-    struct Listing {
+    struct SellListing {
         uint256 tokenId;
         uint256 amount;
         uint256 askPrice;
@@ -69,7 +69,7 @@ contract LilOpenSea is Ownable {
     }
 
     /// @notice An indexed list of listings
-    mapping(uint256 => Listing) public getListing;
+    mapping(uint256 => SellListing) public getListing;
 
     /// @notice The fee ratio for sales.
     uint256 public feeRatio;
@@ -94,7 +94,7 @@ contract LilOpenSea is Ownable {
     /// @param askPrice How much you want to receive in exchange for the token
     /// @return The ID of the created listing
     /// @dev Remember to call setApprovalForAll(<address of this contract>, true) on the ERC721's contract before calling this function
-    function list(
+    function listSellOrder(
         uint256 tokenId,
         uint256 amount,
         uint256 askPrice,
@@ -104,7 +104,7 @@ contract LilOpenSea is Ownable {
         IERC20 token = IERC20(askToken);
         require(approvedTokens[token], "PropexMarket: Cannot list this token.");
 
-        Listing memory listing = Listing({
+        SellListing memory listing = SellListing({
             tokenId: tokenId,
             amount: amount,
             askPrice: askPrice,
@@ -115,7 +115,7 @@ contract LilOpenSea is Ownable {
 
         getListing[saleCounter] = listing;
 
-        emit NewListing(tokenId, saleCounter, msg.sender, listing);
+        emit NewSellListing(tokenId, saleCounter, msg.sender, listing);
 
         propexContract.safeTransferFrom(
             msg.sender,
@@ -130,8 +130,8 @@ contract LilOpenSea is Ownable {
 
     /// @notice Cancel an existing listing
     /// @param listingId The ID for the listing you want to cancel
-    function cancelListing(uint256 listingId) public payable {
-        Listing memory listing = getListing[listingId];
+    function cancelSellListing(uint256 listingId) public payable {
+        SellListing memory listing = getListing[listingId];
 
         require(
             listing.creator == msg.sender,
@@ -140,7 +140,7 @@ contract LilOpenSea is Ownable {
 
         delete getListing[listingId];
 
-        emit ListingRemoved(listing.tokenId, listingId, listing);
+        emit SellListingRemoved(listing.tokenId, listingId, listing);
 
         propexContract.safeTransferFrom(
             address(this),
@@ -153,12 +153,12 @@ contract LilOpenSea is Ownable {
 
     /// @notice Purchase one of the listed tokens
     /// @param listingId The ID for the listing you want to purchase
-    function buyListing(uint256 listingId, uint256 amount) public payable {
-        Listing memory listing = getListing[listingId];
+    function fillSellListing(uint256 listingId, uint256 amount) public payable {
+        SellListing memory listing = getListing[listingId];
 
         require(
             listing.creator != address(0),
-            "PropexMarket: Listing does not exist."
+            "PropexMarket: SellListing does not exist."
         );
 
         // Attempt to purchase a portion of the listing.
@@ -182,7 +182,7 @@ contract LilOpenSea is Ownable {
             getListing[listingId].amount -= amount;
 
             // Purchase (partial) listing
-            emit ListingBought(listing.tokenId, listingId, msg.sender, listing);
+            emit SellListingBought(listing.tokenId, listingId, msg.sender, listing);
             propexContract.safeTransferFrom(
                 address(this),
                 msg.sender,
@@ -206,8 +206,8 @@ contract LilOpenSea is Ownable {
             delete getListing[listingId];
 
             // Send IERC1155 token to user.
-            emit ListingBought(listing.tokenId, listingId, msg.sender, listing);
-			emit ListingRemoved(listing.tokenId, listingId, listing);
+            emit SellListingBought(listing.tokenId, listingId, msg.sender, listing);
+			emit SellListingRemoved(listing.tokenId, listingId, listing);
             propexContract.safeTransferFrom(
                 address(this),
                 msg.sender,
