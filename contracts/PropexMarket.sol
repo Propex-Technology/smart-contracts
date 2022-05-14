@@ -276,6 +276,7 @@ contract LilOpenSea is Ownable {
 
     /// @notice List an ERC721 token buy offer
     /// @param tokenId The ID of the token you're listing
+    /// @param amount How many tokens they'd like to buy.
     /// @param bidPrice How much you want to receive in exchange for the token
     /// @return bidToken ID of the created listing
     /// @dev Remember to call setApprovalForAll(<address of this contract>, true) on the ERC721's contract before calling this function
