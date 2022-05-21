@@ -21,4 +21,7 @@ contract PropexDealNFT is ERC721AQueryable, Ownable {
         if(quantity + _totalMinted() > maxAmount) revert MintOverMax();
         _safeMint(user, quantity);
     }
+
+    // TODO: allow purchase as long person is reserved (oracle)
+    
 }
