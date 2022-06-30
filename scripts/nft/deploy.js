@@ -2,15 +2,12 @@ const hre = require("hardhat");
 
 // npx hardhat run scripts/deploy.js --network mumbai
 
-// Input
-const DEAL_INDEX = 0;
-const AMOUNT = 1420;
-const DEAL_NAME = "Propex Test Deal";
-
 async function main() {
-  const PropexDealERC20 = await hre.ethers.getContractFactory("PropexDealERC20");
-  const dealNFT = await PropexDealERC20
-    .deploy(DEAL_NAME, `PPX-${DEAL_INDEX}`, DEAL_INDEX, AMOUNT);
+  const PropexDealNFT = await hre.ethers.getContractFactory("PropexDealNFT");
+  const dealNFT = await PropexDealNFT.deploy("Propex Test Deal", "PPX-0", 0, 1420);
+
+  // 0x41C0A3059De6bE4f1913630db94d93aB5a2904B4
+  await dealNFT.deployed();
 
   console.log("Deal NFT deployed to:", dealNFT.address);
 }
